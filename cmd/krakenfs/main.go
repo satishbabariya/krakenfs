@@ -276,6 +276,45 @@ func overrideConfigWithEnv(config *Config) {
 	if logLevel := os.Getenv("KRAKENFS_LOG_LEVEL"); logLevel != "" {
 		config.Log.Level = logLevel
 	}
+
+	// Override TLS settings
+	if tlsEnable := os.Getenv("KRAKENFS_TLS_ENABLE"); tlsEnable != "" {
+		if enable, err := strconv.ParseBool(tlsEnable); err == nil {
+			config.Sync.TLS.Enable = enable
+		}
+	}
+
+	if certFile := os.Getenv("KRAKENFS_TLS_CERT_FILE"); certFile != "" {
+		config.Sync.TLS.CertFile = certFile
+	}
+
+	if keyFile := os.Getenv("KRAKENFS_TLS_KEY_FILE"); keyFile != "" {
+		config.Sync.TLS.KeyFile = keyFile
+	}
+
+	if caFile := os.Getenv("KRAKENFS_TLS_CA_FILE"); caFile != "" {
+		config.Sync.TLS.CAFile = caFile
+	}
+
+	if verifyPeer := os.Getenv("KRAKENFS_TLS_VERIFY_PEER"); verifyPeer != "" {
+		if verify, err := strconv.ParseBool(verifyPeer); err == nil {
+			config.Sync.TLS.VerifyPeer = verify
+		}
+	}
+
+	if minVersion := os.Getenv("KRAKENFS_TLS_MIN_VERSION"); minVersion != "" {
+		config.Sync.TLS.MinVersion = minVersion
+	}
+
+	if maxVersion := os.Getenv("KRAKENFS_TLS_MAX_VERSION"); maxVersion != "" {
+		config.Sync.TLS.MaxVersion = maxVersion
+	}
+
+	if insecureSkipVerify := os.Getenv("KRAKENFS_TLS_INSECURE_SKIP_VERIFY"); insecureSkipVerify != "" {
+		if skip, err := strconv.ParseBool(insecureSkipVerify); err == nil {
+			config.Sync.TLS.InsecureSkipVerify = skip
+		}
+	}
 }
 
 func main() {

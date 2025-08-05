@@ -32,6 +32,15 @@ sync:
   conflict_resolution:
     strategy: "timestamp"  # Options: timestamp, manual, last_write_wins
     timeout: "30s"
+  tls:
+    enable: false  # Enable TLS/SSL encryption for P2P communication
+    cert_file: "/etc/krakenfs/certs/node1.crt"  # Path to certificate file
+    key_file: "/etc/krakenfs/certs/node1.key"   # Path to private key file
+    ca_file: "/etc/krakenfs/certs/ca.crt"       # Path to CA certificate file (optional)
+    verify_peer: false  # Verify peer certificates (requires CA file)
+    min_version: "1.2"  # Minimum TLS version (1.2 or 1.3)
+    max_version: "1.3"  # Maximum TLS version (1.2 or 1.3)
+    insecure_skip_verify: false  # Skip certificate verification (insecure)
 
 volume:
   root_path: "/var/lib/krakenfs/volumes"  # Docker volume storage location
