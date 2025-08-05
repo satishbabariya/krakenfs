@@ -1,0 +1,38 @@
+# KrakenFS Example Configuration
+# Copy this file to your desired location and customize it for your environment
+
+log:
+  level: "info"  # Options: debug, info, warn, error
+
+filesystem:
+  watch_paths:
+    - "/data"  # Paths to monitor for changes
+    - "/shared"
+  exclude_patterns:
+    - "*.tmp"
+    - "*.log"
+    - ".git"
+    - "node_modules"
+    - ".DS_Store"
+  recursive: true  # Monitor subdirectories
+  debounce_time: "100ms"  # Debounce file events
+
+sync:
+  node_id: "node1"  # Unique identifier for this node
+  cluster_nodes:
+    - "node1:192.168.1.10"  # Format: "node_id:ip_address"
+    - "node2:192.168.1.11"
+    - "node3:192.168.1.12"
+  p2p_port: 6881  # P2P communication port
+  tracker_port: 6882  # Tracker/coordinator port
+  bandwidth:
+    enable: true
+    egress_bits_per_sec: 1677721600  # 200*8 Mbit (outgoing)
+    ingress_bits_per_sec: 2516582400  # 300*8 Mbit (incoming)
+  conflict_resolution:
+    strategy: "timestamp"  # Options: timestamp, manual, last_write_wins
+    timeout: "30s"
+
+volume:
+  root_path: "/var/lib/krakenfs/volumes"  # Docker volume storage location
+  driver_name: "krakenfs"  # Docker volume driver name 

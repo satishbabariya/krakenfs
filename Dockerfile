@@ -22,11 +22,8 @@ WORKDIR /root/
 # Copy the binary from builder stage
 COPY --from=builder /app/krakenfs .
 
-# Copy configuration
-COPY config/krakenfs/base.yaml /etc/krakenfs/config.yaml
-
 # Create necessary directories
-RUN mkdir -p /var/lib/krakenfs/volumes
+RUN mkdir -p /var/lib/krakenfs/volumes /etc/krakenfs
 
 EXPOSE 6881 6882
 

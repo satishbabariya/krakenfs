@@ -63,30 +63,61 @@ This will start:
 
 ### Configuration
 
-KrakenFS uses YAML configuration files. Example configuration:
+KrakenFS uses YAML configuration files. You must provide your own configuration file when running the container.
+
+#### 1. Create your configuration file
+
+Copy the example configuration and customize it for your environment:
+
+```bash
+# Copy the example configuration
+cp config/krakenfs/example.yaml my-config.yaml
+
+# Edit the configuration for your environment
+nano my-config.yaml
+```
+
+#### 2. Mount your configuration when running the container
+
+```bash
+# Run with your custom configuration
+docker run -d \
+  --name krakenfs \
+  -v /path/to/your/config.yaml:/etc/krakenfs/config.yaml \
+  -v /var/lib/krakenfs/volumes:/var/lib/krakenfs/volumes \
+  -p 6881:6881 \
+  -p 6882:6882 \
+  krakenfs:latest
+```
+
+#### 3. Example configuration structure
 
 ```yaml
 log:
-  level: "info"
+  level: "info"  # Options: debug, info, warn, error
 
 filesystem:
   watch_paths:
-    - "/opt/tomcat/webapps/zenoptics/resources"
+    - "/data"  # Paths to monitor for changes
+    - "/shared"
   exclude_patterns:
     - "*.tmp"
     - "*.log"
+    - ".git"
   recursive: true
+  debounce_time: "100ms"
 
 sync:
-  node_id: "node1"
+  node_id: "node1"  # Unique identifier for this node
   cluster_nodes:
-    - "vm1:192.168.1.10"
-    - "vm2:192.168.1.11"
+    - "node1:192.168.1.10"  # Format: "node_id:ip_address"
+    - "node2:192.168.1.11"
   p2p_port: 6881
+  tracker_port: 6882
   bandwidth:
     enable: true
-    egress_bits_per_sec: 1677721600
-    ingress_bits_per_sec: 2516582400
+    egress_bits_per_sec: 1677721600  # 200*8 Mbit
+    ingress_bits_per_sec: 2516582400  # 300*8 Mbit
   conflict_resolution:
     strategy: "timestamp"
     timeout: "30s"
@@ -94,6 +125,21 @@ sync:
 volume:
   root_path: "/var/lib/krakenfs/volumes"
   driver_name: "krakenfs"
+```
+
+#### 4. Environment variable overrides
+
+You can also override configuration using environment variables:
+
+```bash
+docker run -d \
+  --name krakenfs \
+  -e NODE_ID=my-node \
+  -e CLUSTER_NODES="node1:192.168.1.10,node2:192.168.1.11" \
+  -e KRAKENFS_PORT=6881 \
+  -e KRAKENFS_LOG_LEVEL=debug \
+  -v /path/to/your/config.yaml:/etc/krakenfs/config.yaml \
+  krakenfs:latest
 ```
 
 ## Development
