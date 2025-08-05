@@ -1,0 +1,32 @@
+# KrakenFS Configuration for Node 2
+log:
+  level: "info"
+
+filesystem:
+  watch_paths:
+    - "/data"  # Shared data directory
+  exclude_patterns:
+    - "*.tmp"
+    - "*.log"
+    - ".git"
+    - "node_modules"
+    - ".DS_Store"
+  recursive: true
+  debounce_time: "100ms"
+
+sync:
+  node_id: "node2"  # Will be overridden by NODE_ID env var
+  cluster_nodes: []  # Will be overridden by CLUSTER_NODES env var
+  p2p_port: 6883
+  tracker_port: 6884
+  bandwidth:
+    enable: true
+    egress_bits_per_sec: 1677721600  # 200*8 Mbit
+    ingress_bits_per_sec: 2516582400  # 300*8 Mbit
+  conflict_resolution:
+    strategy: "timestamp"
+    timeout: "30s"
+
+volume:
+  root_path: "/var/lib/krakenfs/volumes"
+  driver_name: "krakenfs" 
