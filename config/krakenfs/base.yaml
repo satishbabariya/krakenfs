@@ -1,0 +1,31 @@
+log:
+  level: "info"
+
+filesystem:
+  watch_paths:
+    - "/opt/tomcat/webapps/zenoptics/resources"
+  exclude_patterns:
+    - "*.tmp"
+    - "*.log"
+    - ".git"
+  recursive: true
+  debounce_time: "100ms"
+
+sync:
+  node_id: "node1"
+  cluster_nodes:
+    - "vm1:192.168.1.10"
+    - "vm2:192.168.1.11"
+  p2p_port: 6881
+  tracker_port: 6882
+  bandwidth:
+    enable: true
+    egress_bits_per_sec: 1677721600  # 200*8 Mbit
+    ingress_bits_per_sec: 2516582400 # 300*8 Mbit
+  conflict_resolution:
+    strategy: "timestamp"
+    timeout: "30s"
+
+volume:
+  root_path: "/var/lib/krakenfs/volumes"
+  driver_name: "krakenfs" 
