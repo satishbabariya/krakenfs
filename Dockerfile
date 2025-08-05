@@ -10,7 +10,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o krakenfs-agent ./cmd/krakenfs-agent
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o krakenfs ./cmd/krakenfs
 
 # Final stage
 FROM alpine:latest
@@ -20,7 +20,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the binary from builder stage
-COPY --from=builder /app/krakenfs-agent .
+COPY --from=builder /app/krakenfs .
 
 # Copy configuration
 COPY config/krakenfs/base.yaml /etc/krakenfs/config.yaml
@@ -30,5 +30,5 @@ RUN mkdir -p /var/lib/krakenfs/volumes
 
 EXPOSE 6881 6882
 
-ENTRYPOINT ["./krakenfs-agent"]
+ENTRYPOINT ["./krakenfs"]
 CMD ["--config", "/etc/krakenfs/config.yaml"] 
