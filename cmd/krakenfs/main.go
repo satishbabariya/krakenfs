@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/uber/krakenfs/lib/filesystem"
+	"github.com/uber/krakenfs/lib/security"
 	"github.com/uber/krakenfs/lib/sync"
 	"github.com/uber/krakenfs/lib/volume"
 	"github.com/uber/krakenfs/utils/configutil"
@@ -22,22 +23,24 @@ import (
 
 // Config defines the complete KrakenFS agent configuration.
 type Config struct {
-	Log        log.Config        `yaml:"log"`
-	Filesystem filesystem.Config `yaml:"filesystem"`
-	Sync       sync.Config       `yaml:"sync"`
-	Volume     volume.Config     `yaml:"volume"`
+	Log        log.Config              `yaml:"log"`
+	Filesystem filesystem.Config       `yaml:"filesystem"`
+	Sync       sync.Config             `yaml:"sync"`
+	Volume     volume.Config           `yaml:"volume"`
+	Security   security.SecurityConfig `yaml:"security"`
 }
 
 // Agent represents the complete KrakenFS agent.
 type Agent struct {
-	config       Config
-	logger       *zap.Logger
-	fsWatcher    *filesystem.Watcher
-	syncEngine   *sync.Engine
-	volumeDriver *volume.Driver
-	volumePlugin *volume.Plugin
-	ctx          context.Context
-	cancel       context.CancelFunc
+	config          Config
+	logger          *zap.Logger
+	fsWatcher       *filesystem.Watcher
+	syncEngine      *sync.Engine
+	volumeDriver    *volume.Driver
+	volumePlugin    *volume.Plugin
+	securityManager *security.SecurityManager
+	ctx             context.Context
+	cancel          context.CancelFunc
 }
 
 // NewAgent creates a new KrakenFS agent.
@@ -68,15 +71,23 @@ func NewAgent(config Config, logger *zap.Logger) (*Agent, error) {
 	// Initialize volume plugin
 	volumePlugin := volume.NewPlugin(volumeDriver, logger)
 
+	// Initialize security manager
+	securityManager, err := security.NewSecurityManager(config.Security, logger)
+	if err != nil {
+		cancel()
+		return nil, fmt.Errorf("create security manager: %s", err)
+	}
+
 	agent := &Agent{
-		config:       config,
-		logger:       logger,
-		fsWatcher:    fsWatcher,
-		syncEngine:   syncEngine,
-		volumeDriver: volumeDriver,
-		volumePlugin: volumePlugin,
-		ctx:          ctx,
-		cancel:       cancel,
+		config:          config,
+		logger:          logger,
+		fsWatcher:       fsWatcher,
+		syncEngine:      syncEngine,
+		volumeDriver:    volumeDriver,
+		volumePlugin:    volumePlugin,
+		securityManager: securityManager,
+		ctx:             ctx,
+		cancel:          cancel,
 	}
 
 	return agent, nil
@@ -121,6 +132,7 @@ func (a *Agent) Stop() {
 	a.fsWatcher.Stop()
 	a.syncEngine.Stop()
 	a.volumeDriver.Stop()
+	a.securityManager.Close()
 
 	a.logger.Info("KrakenFS agent stopped")
 }

@@ -44,4 +44,24 @@ sync:
 
 volume:
   root_path: "/var/lib/krakenfs/volumes"  # Docker volume storage location
-  driver_name: "krakenfs"  # Docker volume driver name 
+  driver_name: "krakenfs"  # Docker volume driver name
+
+# Security Configuration
+security:
+  authentication:
+    enable: true  # Enable authentication
+    type: "jwt"  # Authentication type: "jwt", "ldap", "oauth2"
+    jwt_secret: "your-secret-key-change-in-production"  # JWT signing secret
+    token_expiry: "24h"  # Token expiration time
+    bcrypt_cost: 12  # BCrypt cost for password hashing
+  
+  authorization:
+    enable: true  # Enable authorization
+    rbac:
+      enable: true  # Enable Role-Based Access Control
+  
+  audit:
+    enable: true  # Enable audit logging
+    log_file: "/var/log/krakenfs/audit.log"  # Audit log file path
+    log_level: "info"  # Audit log level
+    format: "json"  # Log format: "json", "text" 

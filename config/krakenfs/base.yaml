@@ -37,4 +37,30 @@ sync:
 
 volume:
   root_path: "/var/lib/krakenfs/volumes"
-  driver_name: "krakenfs" 
+  driver_name: "krakenfs"
+
+security:
+  authentication:
+    enable: true
+    type: "jwt"
+    jwt_secret: "your-secret-key-change-in-production"
+    token_expiry: "24h"
+    bcrypt_cost: 12
+  
+  authorization:
+    enable: true
+    rbac:
+      enable: true
+  
+  audit:
+    enable: true
+    log_file: "/var/log/krakenfs/audit.log"
+    log_level: "info"
+    format: "json"
+
+api:
+  port: 8080
+  host: "0.0.0.0"
+  read_timeout: "30s"
+  write_timeout: "30s"
+  idle_timeout: "60s" 
