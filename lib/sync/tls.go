@@ -107,8 +107,8 @@ func (tm *TLSManager) GenerateSelfSignedCert(nodeID string) error {
 		return fmt.Errorf("encode certificate: %s", err)
 	}
 
-	// Write private key file
-	keyOut, err := os.Create(tm.config.KeyFile)
+	// Write private key file with restrictive permissions (0600)
+	keyOut, err := os.OpenFile(tm.config.KeyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("create key file: %s", err)
 	}
