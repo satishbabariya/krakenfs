@@ -43,7 +43,8 @@ security:
   authentication:
     enable: true
     type: "jwt"
-    jwt_secret: "your-secret-key-change-in-production"
+    # IMPORTANT: Set JWT secret via environment variable in production
+    jwt_secret: ${JWT_SECRET}
     token_expiry: "24h"
     bcrypt_cost: 12
   
