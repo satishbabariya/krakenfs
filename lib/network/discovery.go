@@ -15,8 +15,11 @@ package network
 
 import (
 	"fmt"
+	"net"
 	"strings"
 	"time"
+
+	"github.com/uber/krakenfs/lib/sync"
 )
 
 // PeerInfo represents information about a peer in the network.
@@ -32,6 +35,7 @@ type Discovery struct {
 	nodeID       string
 	peers        map[string]*PeerInfo
 	clusterNodes []string
+	tlsManager   *sync.TLSManager
 }
 
 // NewDiscovery creates a new peer discovery manager.
@@ -41,6 +45,11 @@ func NewDiscovery(nodeID string, clusterNodes []string) *Discovery {
 		peers:        make(map[string]*PeerInfo),
 		clusterNodes: clusterNodes,
 	}
+}
+
+// SetTLSManager sets the TLS manager for secure connections.
+func (d *Discovery) SetTLSManager(tlsManager *sync.TLSManager) {
+	d.tlsManager = tlsManager
 }
 
 // DiscoverPeers discovers peers in the cluster.
@@ -73,8 +82,34 @@ func (d *Discovery) DiscoverPeers() ([]*PeerInfo, error) {
 
 // connectToPeer attempts to connect to a peer.
 func (d *Discovery) connectToPeer(nodeID, addr string) (*PeerInfo, error) {
-	// For now, just create a peer info without actual connection
-	// TODO: Implement actual peer connection logic
+	// Parse address and port
+	parts := strings.Split(addr, ":")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("invalid address format: %s", addr)
+	}
+
+	host := parts[0]
+	port := parts[1]
+
+	// Connect to peer
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%s", host, port))
+	if err != nil {
+		return nil, fmt.Errorf("connect to peer: %s", err)
+	}
+
+	// Wrap connection with TLS if enabled
+	if d.tlsManager != nil {
+		conn, err = d.tlsManager.WrapConnection(conn, true) // true = client mode
+		if err != nil {
+			conn.Close()
+			return nil, fmt.Errorf("wrap connection with TLS: %s", err)
+		}
+	}
+
+	// Close connection after testing
+	conn.Close()
+
+	// Create peer info
 	peer := &PeerInfo{
 		ID:       nodeID,
 		Addr:     addr,

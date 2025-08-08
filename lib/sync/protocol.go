@@ -77,9 +77,10 @@ type HandshakeResponsePayload struct {
 
 // Protocol manages peer communication.
 type Protocol struct {
-	nodeID  string
-	version string
-	logger  *zap.Logger
+	nodeID     string
+	version    string
+	logger     *zap.Logger
+	tlsManager *TLSManager
 }
 
 // NewProtocol creates a new protocol instance.
@@ -91,8 +92,22 @@ func NewProtocol(nodeID, version string, logger *zap.Logger) *Protocol {
 	}
 }
 
+// SetTLSManager sets the TLS manager for secure connections.
+func (p *Protocol) SetTLSManager(tlsManager *TLSManager) {
+	p.tlsManager = tlsManager
+}
+
 // Handshake performs a handshake with a peer.
 func (p *Protocol) Handshake(conn net.Conn) (*Peer, error) {
+	// Wrap connection with TLS if enabled
+	if p.tlsManager != nil {
+		var err error
+		conn, err = p.tlsManager.WrapConnection(conn, false) // false = server mode
+		if err != nil {
+			return nil, fmt.Errorf("wrap connection with TLS: %s", err)
+		}
+	}
+
 	// Send handshake request
 	req := HandshakeRequestPayload{
 		NodeID:    p.nodeID,

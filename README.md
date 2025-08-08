@@ -11,6 +11,9 @@ KrakenFS is a P2P-powered Docker volume replication system that enables bidirect
 - **Conflict Resolution**: Configurable conflict resolution strategies for concurrent modifications
 - **Bandwidth Management**: Configurable upload/download bandwidth limits
 - **Health Monitoring**: Built-in health checks and cluster monitoring
+- **🔐 Authentication & Authorization**: JWT-based authentication with RBAC authorization
+- **📋 Audit Logging**: Comprehensive security event logging for compliance
+- **🛡️ Security**: Role-based access control and file-level permissions
 
 ## Architecture
 
@@ -60,6 +63,18 @@ This will start:
 - KrakenFS agent with P2P synchronization
 - Tomcat container with shared volume
 - Real-time file replication between nodes
+- **Security API** on port 8080 for authentication
+
+### Security Features
+
+KrakenFS now includes comprehensive security features:
+
+- **Default Users**: `admin/admin123` and `user/user123`
+- **API Endpoints**: Authentication and authorization APIs
+- **Audit Logging**: All security events are logged
+- **RBAC**: Role-based access control for files and operations
+
+For detailed security documentation, see [SECURITY.md](SECURITY.md).
 
 ### Configuration
 
@@ -138,8 +153,36 @@ docker run -d \
   -e CLUSTER_NODES="node1:192.168.1.10,node2:192.168.1.11" \
   -e KRAKENFS_PORT=6881 \
   -e KRAKENFS_LOG_LEVEL=debug \
+  -e KRAKENFS_TLS_ENABLE=true \
   -v /path/to/your/config.yaml:/etc/krakenfs/config.yaml \
   krakenfs:latest
+```
+
+#### 5. Security Configuration
+
+Security features can be configured in the YAML file:
+
+```yaml
+security:
+  authentication:
+    enable: true
+    type: "jwt"
+    jwt_secret: "your-secret-key-change-in-production"
+    token_expiry: "24h"
+  
+  authorization:
+    enable: true
+    rbac:
+      enable: true
+  
+  audit:
+    enable: true
+    log_file: "/var/log/krakenfs/audit.log"
+    format: "json"
+
+api:
+  port: 8080
+  host: "0.0.0.0"
 ```
 
 ## Development
