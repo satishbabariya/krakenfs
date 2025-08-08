@@ -111,7 +111,9 @@ func (a *Authenticator) initializeDefaultUsers() {
 	a.users["admin"] = adminUser
 
 	// Create default user
-	userPassword, _ := a.hashPassword("user123")
+	// Generate a random password for the default user
+	randomUserPassword := generateRandomPassword(16)
+	userPassword, _ := a.hashPassword(randomUserPassword)
 	user := &User{
 		ID:       "user",
 		Username: "user",
