@@ -51,7 +51,9 @@ security:
   authentication:
     enable: true  # Enable authentication
     type: "jwt"  # Authentication type: "jwt", "ldap", "oauth2"
-    jwt_secret: "your-secret-key-change-in-production"  # JWT signing secret
+    # jwt_secret: "REPLACE_WITH_A_STRONG_RANDOM_SECRET"  # JWT signing secret (REQUIRED: set a strong, unique value before production)
+    # !!! IMPORTANT: You MUST set 'jwt_secret' to a strong, random value for production deployments.
+    # Example: jwt_secret: "A_LONG_RANDOM_STRING_GENERATED_FOR_YOUR_DEPLOYMENT"
     token_expiry: "24h"  # Token expiration time
     bcrypt_cost: 12  # BCrypt cost for password hashing
   
