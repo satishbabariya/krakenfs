@@ -300,14 +300,13 @@ func (sm *SecurityManager) GetDefaultUsers() map[string]interface{} {
 }
 
 // generateSecurePassword generates a secure random password of the given length.
-func generateSecurePassword(length int) string {
+func generateSecurePassword(length int) (string, error) {
 	b := make([]byte, length)
 	_, err := rand.Read(b)
 	if err != nil {
-		// fallback to a fixed string if random fails, but log this
-		return "changeme"
+		return "", fmt.Errorf("failed to generate random password: %w", err)
 	}
-	return base64.RawURLEncoding.EncodeToString(b)[:length]
+	return base64.RawURLEncoding.EncodeToString(b)[:length], nil
 }
 // GetDefaultRoles returns the default roles for the system.
 func (sm *SecurityManager) GetDefaultRoles() map[string]interface{} {
