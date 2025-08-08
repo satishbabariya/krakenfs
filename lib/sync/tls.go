@@ -63,7 +63,7 @@ func (tm *TLSManager) GenerateSelfSignedCert(nodeID string) error {
 		zap.String("node_id", nodeID))
 
 	// Generate private key
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return fmt.Errorf("generate private key: %s", err)
 	}
