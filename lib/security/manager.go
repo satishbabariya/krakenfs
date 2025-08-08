@@ -277,20 +277,38 @@ func (sm *SecurityManager) IsSecurityEnabled() bool {
 
 // GetDefaultUsers returns the default users for the system.
 func (sm *SecurityManager) GetDefaultUsers() map[string]interface{} {
+	adminPassword := os.Getenv("KRAKENFS_ADMIN_PASSWORD")
+	if adminPassword == "" {
+		adminPassword = generateSecurePassword(16)
+	}
+	userPassword := os.Getenv("KRAKENFS_USER_PASSWORD")
+	if userPassword == "" {
+		userPassword = generateSecurePassword(16)
+	}
 	return map[string]interface{}{
 		"admin": map[string]interface{}{
 			"username": "admin",
-			"password": "admin123",
+			"password": adminPassword,
 			"role":     "admin",
 		},
 		"user": map[string]interface{}{
 			"username": "user",
-			"password": "user123",
+			"password": userPassword,
 			"role":     "user",
 		},
 	}
 }
 
+// generateSecurePassword generates a secure random password of the given length.
+func generateSecurePassword(length int) string {
+	b := make([]byte, length)
+	_, err := rand.Read(b)
+	if err != nil {
+		// fallback to a fixed string if random fails, but log this
+		return "changeme"
+	}
+	return base64.RawURLEncoding.EncodeToString(b)[:length]
+}
 // GetDefaultRoles returns the default roles for the system.
 func (sm *SecurityManager) GetDefaultRoles() map[string]interface{} {
 	return map[string]interface{}{
