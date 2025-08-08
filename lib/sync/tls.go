@@ -97,7 +97,7 @@ func (tm *TLSManager) GenerateSelfSignedCert(nodeID string) error {
 	}
 
 	// Write certificate file
-	certOut, err := os.Create(tm.config.CertFile)
+	certOut, err := os.OpenFile(tm.config.CertFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("create cert file: %s", err)
 	}
