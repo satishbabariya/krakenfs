@@ -1,0 +1,43 @@
+{
+  "description": "KrakenFS P2P Volume Driver",
+  "documentation": "https://github.com/uber/krakenfs",
+  "entrypoint": ["/usr/local/bin/krakenfs", "--config", "/etc/krakenfs/config.yaml"],
+  "env": [
+    {
+      "name": "LOG_LEVEL",
+      "description": "Set log level (debug, info, warn, error)",
+      "value": "info"
+    }
+  ],
+  "interface": {
+    "types": ["docker.volumedriver/1.0"],
+    "socket": "krakenfs.sock"
+  },
+  "linux": {
+    "capabilities": ["CAP_SYS_ADMIN"],
+    "devices": null
+  },
+  "mounts": [
+    {
+      "source": "/var/lib/krakenfs",
+      "destination": "/var/lib/krakenfs",
+      "type": "bind",
+      "options": ["rbind", "rshared"]
+    }
+  ],
+  "network": {
+    "type": "host"
+  },
+  "user": {
+    "uid": 0,
+    "gid": 0
+  },
+  "workdir": "/",
+  "args": {
+    "name": "krakenfs",
+    "description": "P2P-powered Docker volume replication system",
+    "vendor": "Uber Technologies",
+    "version": "1.0.0",
+    "url": "https://github.com/uber/krakenfs"
+  }
+}

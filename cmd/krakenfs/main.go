@@ -38,6 +38,7 @@ type Agent struct {
 	syncEngine      *sync.Engine
 	volumeDriver    *volume.Driver
 	volumePlugin    *volume.Plugin
+	dockerPlugin    *volume.DockerPlugin
 	securityManager *security.SecurityManager
 	ctx             context.Context
 	cancel          context.CancelFunc
@@ -71,6 +72,9 @@ func NewAgent(config Config, logger *zap.Logger) (*Agent, error) {
 	// Initialize volume plugin
 	volumePlugin := volume.NewPlugin(volumeDriver, logger)
 
+	// Initialize Docker plugin
+	dockerPlugin := volume.NewDockerPlugin(volumeDriver, logger)
+
 	// Initialize security manager
 	securityManager, err := security.NewSecurityManager(config.Security, logger)
 	if err != nil {
@@ -85,6 +89,7 @@ func NewAgent(config Config, logger *zap.Logger) (*Agent, error) {
 		syncEngine:      syncEngine,
 		volumeDriver:    volumeDriver,
 		volumePlugin:    volumePlugin,
+		dockerPlugin:    dockerPlugin,
 		securityManager: securityManager,
 		ctx:             ctx,
 		cancel:          cancel,
@@ -112,6 +117,11 @@ func (a *Agent) Start() error {
 		return fmt.Errorf("start volume driver: %s", err)
 	}
 
+	// Start Docker plugin
+	if err := a.dockerPlugin.Start(); err != nil {
+		return fmt.Errorf("start Docker plugin: %s", err)
+	}
+
 	// Start event processing
 	go a.processEvents()
 
@@ -132,6 +142,9 @@ func (a *Agent) Stop() {
 	a.fsWatcher.Stop()
 	a.syncEngine.Stop()
 	a.volumeDriver.Stop()
+	if err := a.dockerPlugin.Stop(); err != nil {
+		a.logger.Error("Error stopping Docker plugin", zap.Error(err))
+	}
 	a.securityManager.Close()
 
 	a.logger.Info("KrakenFS agent stopped")
@@ -213,11 +226,45 @@ func ParseFlags() Config {
 	var (
 		app = kingpin.New("krakenfs-agent", "KrakenFS P2P volume replication agent")
 
-		configFile = app.Flag("config", "Configuration file path").Default("config.yaml").String()
-		pluginMode = app.Flag("plugin", "Run in Docker plugin mode").Bool()
+		configFile    = app.Flag("config", "Configuration file path").Default("config.yaml").String()
+		pluginMode    = app.Flag("plugin", "Run in Docker plugin mode").Bool()
+		generateConfig = app.Flag("generate-config", "Generate secure configuration file").String()
+		validateConfig = app.Flag("validate-config", "Validate configuration security").String()
 	)
 
 	kingpin.MustParse(app.Parse(os.Args[1:]))
+
+	// Check if generating secure config
+	if *generateConfig != "" {
+		logger, _ := log.New(log.Config{Level: "info"}, nil)
+		generator := security.NewSecureConfigGenerator(logger)
+		if err := generator.GenerateSecureConfig(*generateConfig); err != nil {
+			panic(fmt.Sprintf("generate secure config: %s", err))
+		}
+		fmt.Printf("Secure configuration generated at: %s\n", *generateConfig)
+		fmt.Printf("Check credentials.txt for login details\n")
+		os.Exit(0)
+	}
+
+	// Check if validating config
+	if *validateConfig != "" {
+		logger, _ := log.New(log.Config{Level: "info"}, nil)
+		generator := security.NewSecureConfigGenerator(logger)
+		warnings, err := generator.ValidateConfigSecurity(*validateConfig)
+		if err != nil {
+			panic(fmt.Sprintf("validate config: %s", err))
+		}
+		if len(warnings) > 0 {
+			fmt.Printf("Security warnings for %s:\n", *validateConfig)
+			for _, warning := range warnings {
+				fmt.Printf("  - %s\n", warning)
+			}
+			os.Exit(1)
+		} else {
+			fmt.Printf("Configuration %s passed security validation\n", *validateConfig)
+		}
+		os.Exit(0)
+	}
 
 	// Check if running in plugin mode
 	if *pluginMode {

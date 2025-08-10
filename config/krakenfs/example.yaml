@@ -20,9 +20,9 @@ filesystem:
 sync:
   node_id: "node1"  # Unique identifier for this node
   cluster_nodes:
-    - "node1:192.168.1.10"  # Format: "node_id:ip_address"
-    - "node2:192.168.1.11"
-    - "node3:192.168.1.12"
+    - "node1:auto"          # Format: "node_id:ip_address" or "node_id:auto" for auto-detection
+    - "node2:auto"          # Use environment variables or auto-detection for dynamic IPs
+    - "node3:auto"          # Example: "node1:${NODE1_IP}" or "node1:auto"
   p2p_port: 6881  # P2P communication port
   tracker_port: 6882  # Tracker/coordinator port
   bandwidth:
@@ -41,6 +41,20 @@ sync:
     min_version: "1.2"  # Minimum TLS version (1.2 or 1.3)
     max_version: "1.3"  # Maximum TLS version (1.2 or 1.3)
     insecure_skip_verify: false  # Skip certificate verification (insecure)
+  storage:
+    path: "/var/lib/krakenfs/data"  # Persistent storage path
+  discovery:
+    enable: true  # Enable automatic peer discovery via mDNS
+    service_name: "_krakenfs._tcp"  # mDNS service name
+    domain: "local"  # mDNS domain
+  recovery:
+    max_retries: 5  # Maximum retry attempts
+    initial_delay: "1s"  # Initial delay between retries
+    max_delay: "30s"  # Maximum delay between retries
+    backoff_multiplier: 2.0  # Exponential backoff multiplier
+    reset_after: "5m"  # Reset failure count after this duration
+    enable_circuit_breaker: true  # Enable circuit breaker pattern
+    circuit_breaker_threshold: 10  # Open circuit after this many failures
 
 volume:
   root_path: "/var/lib/krakenfs/volumes"  # Docker volume storage location
@@ -66,4 +80,13 @@ security:
     enable: true  # Enable audit logging
     log_file: "/var/log/krakenfs/audit.log"  # Audit log file path
     log_level: "info"  # Audit log level
-    format: "json"  # Log format: "json", "text" 
+    format: "json"  # Log format: "json", "text"
+
+# API Configuration
+api:
+  port: 8080  # API server port
+  host: "0.0.0.0"  # API server host (use 127.0.0.1 for localhost only)
+  rate_limit:
+    requests_per_minute: 60  # Maximum requests per minute per IP
+    burst_size: 10  # Burst size for rate limiting
+    cleanup_interval: "5m"  # Cleanup interval for rate limiter 

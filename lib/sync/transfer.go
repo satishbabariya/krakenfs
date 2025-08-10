@@ -152,7 +152,7 @@ func (ft *FileTransfer) ChunkFile(filePath string) ([]Chunk, error) {
 }
 
 // SendFile sends a file to a peer.
-func (ft *FileTransfer) SendFile(peer *Peer, filePath string) error {
+func (ft *FileTransfer) SendFile(peer *Peer, filePath string, protocol *Protocol) error {
 	// Chunk the file
 	chunks, err := ft.ChunkFile(filePath)
 	if err != nil {
@@ -168,7 +168,6 @@ func (ft *FileTransfer) SendFile(peer *Peer, filePath string) error {
 		Timestamp:   time.Now(),
 	}
 
-	protocol := NewProtocol("", "1.0", ft.logger)
 	if err := protocol.sendMessage(peer.Conn, FileTransferRequest, req); err != nil {
 		return fmt.Errorf("send file transfer request: %s", err)
 	}

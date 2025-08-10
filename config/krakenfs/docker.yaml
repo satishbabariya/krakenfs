@@ -1,0 +1,87 @@
+# KrakenFS Docker Configuration
+# This configuration uses environment variables for dynamic IP resolution
+
+log:
+  level: "${LOG_LEVEL:-info}"
+
+filesystem:
+  watch_paths:
+    - "/data"
+    - "/shared"
+  exclude_patterns:
+    - "*.tmp"
+    - "*.log"
+    - ".git"
+    - "node_modules"
+    - ".DS_Store"
+  recursive: true
+  debounce_time: "100ms"
+
+sync:
+  node_id: "${NODE_ID:-node1}"
+  cluster_nodes:
+    - "${NODE_ID:-node1}:auto"                    # Auto-detect this node's IP
+    - "${PEER_NODES:-node2:auto,node3:auto}"      # Peer nodes from environment
+  p2p_port: 6881
+  tracker_port: 6882
+  bandwidth:
+    enable: true
+    egress_bits_per_sec: 1677721600   # 200 Mbit/s
+    ingress_bits_per_sec: 2516582400  # 300 Mbit/s
+  conflict_resolution:
+    strategy: "timestamp"
+    timeout: "30s"
+  tls:
+    enable: "${TLS_ENABLE:-false}"
+    cert_file: "/etc/krakenfs/certs/${NODE_ID}.crt"
+    key_file: "/etc/krakenfs/certs/${NODE_ID}.key"
+    ca_file: "/etc/krakenfs/certs/ca.crt"
+    verify_peer: "${TLS_VERIFY_PEER:-false}"
+    min_version: "1.2"
+    max_version: "1.3"
+    insecure_skip_verify: false
+  storage:
+    path: "/var/lib/krakenfs/data"
+  discovery:
+    enable: "${DISCOVERY_ENABLE:-true}"
+    service_name: "_krakenfs._tcp"
+    domain: "local"
+  recovery:
+    max_retries: 5
+    initial_delay: "1s"
+    max_delay: "30s"
+    backoff_multiplier: 2.0
+    reset_after: "5m"
+    enable_circuit_breaker: true
+    circuit_breaker_threshold: 10
+
+volume:
+  root_path: "/var/lib/krakenfs/volumes"
+  driver_name: "krakenfs"
+
+security:
+  authentication:
+    enable: "${AUTH_ENABLE:-true}"
+    type: "jwt"
+    jwt_secret: "${JWT_SECRET}"
+    token_expiry: "24h"
+    bcrypt_cost: 12
+  
+  authorization:
+    enable: "${AUTHZ_ENABLE:-true}"
+    rbac:
+      enable: true
+  
+  audit:
+    enable: "${AUDIT_ENABLE:-true}"
+    log_file: "/var/log/krakenfs/audit.log"
+    log_level: "info"
+    format: "json"
+
+api:
+  port: "${API_PORT:-8080}"
+  host: "${API_HOST:-0.0.0.0}"
+  rate_limit:
+    requests_per_minute: 60
+    burst_size: 10
+    cleanup_interval: "5m"
