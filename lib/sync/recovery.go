@@ -368,9 +368,6 @@ func ClassifyError(err error) *RecoverableError {
 
 // contains checks if a string contains a substring (case-insensitive).
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-		    (len(s) > len(substr) && 
-		     strings.Contains(strings.ToLower(s), strings.ToLower(substr))))
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }
 
