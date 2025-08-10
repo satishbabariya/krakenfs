@@ -1,0 +1,86 @@
+# KrakenFS Secure Configuration Example
+# This configuration includes security best practices
+
+log:
+  level: "info"
+
+filesystem:
+  watch_paths:
+    - "/data"
+    - "/shared"
+  exclude_patterns:
+    - "*.tmp"
+    - "*.log"
+    - ".git"
+    - "node_modules"
+    - ".DS_Store"
+    - "*.swp"
+    - "*.bak"
+  recursive: true
+  debounce_time: "100ms"
+
+sync:
+  node_id: "node1"
+  cluster_nodes:
+    - "node1:192.168.1.10"
+    - "node2:192.168.1.11"
+    - "node3:192.168.1.12"
+  p2p_port: 6881
+  tracker_port: 6882
+  bandwidth:
+    enable: true
+    egress_bits_per_sec: 1677721600   # 200 Mbit/s
+    ingress_bits_per_sec: 2516582400  # 300 Mbit/s
+  conflict_resolution:
+    strategy: "timestamp"
+    timeout: "30s"
+  tls:
+    enable: true                      # ALWAYS enable TLS in production
+    cert_file: "/etc/krakenfs/certs/node1.crt"
+    key_file: "/etc/krakenfs/certs/node1.key"
+    ca_file: "/etc/krakenfs/certs/ca.crt"
+    verify_peer: true                 # ALWAYS verify peer certificates
+    min_version: "1.3"               # Use TLS 1.3 minimum
+    max_version: "1.3"               # Use TLS 1.3 maximum
+    insecure_skip_verify: false      # NEVER skip certificate verification
+  storage:
+    path: "/var/lib/krakenfs/data"
+  discovery:
+    enable: true
+    service_name: "_krakenfs._tcp"
+    domain: "local"
+
+volume:
+  root_path: "/var/lib/krakenfs/volumes"
+  driver_name: "krakenfs"
+
+# Security Configuration - CRITICAL SECTION
+security:
+  authentication:
+    enable: true
+    type: "jwt"
+    # IMPORTANT: Generate a secure JWT secret using:
+    # ./krakenfs --generate-config /path/to/secure-config.yaml
+    jwt_secret: "REPLACE_WITH_SECURE_RANDOM_SECRET_FROM_GENERATOR"
+    token_expiry: "1h"               # Shorter expiry for better security
+    bcrypt_cost: 14                  # Higher cost for better security
+  
+  authorization:
+    enable: true
+    rbac:
+      enable: true
+  
+  audit:
+    enable: true
+    log_file: "/var/log/krakenfs/audit.log"
+    log_level: "info"
+    format: "json"
+
+# API Configuration
+api:
+  port: 8080
+  host: "127.0.0.1"                  # Bind to localhost only for security
+  rate_limit:
+    requests_per_minute: 60
+    burst_size: 10
+    cleanup_interval: "5m"

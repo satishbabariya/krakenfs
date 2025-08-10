@@ -97,7 +97,7 @@ func NewAuthenticator(config AuthConfig, logger *zap.Logger) *Authenticator {
 // initializeDefaultUsers creates default users for the system.
 func (a *Authenticator) initializeDefaultUsers() {
 	// Generate random password for admin user
-	adminPlainPassword := generateRandomPassword(16)
+	adminPlainPassword := generateSecurePassword(16)
 	adminPassword, _ := a.hashPassword(adminPlainPassword)
 	adminUser := &User{
 		ID:       "admin",
@@ -113,7 +113,7 @@ func (a *Authenticator) initializeDefaultUsers() {
 
 	// Create default user
 	// Generate a random password for the default user
-	randomUserPassword := generateRandomPassword(16)
+	randomUserPassword := generateSecurePassword(16)
 	userPassword, _ := a.hashPassword(randomUserPassword)
 	user := &User{
 		ID:       "user",

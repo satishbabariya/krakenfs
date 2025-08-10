@@ -1,0 +1,73 @@
+# KrakenFS Secure Configuration
+# Generated with secure random secrets
+# 
+# IMPORTANT SECURITY INFORMATION:
+# - JWT Secret: R8dVX0juxB6db5lT...
+# - Admin Password: Wn@9$kUR8E4$%ABnVY!K%ke*
+# - User Password: 0xINMb@5dA^q7DGj
+# 
+# Please store these credentials securely!
+# Change default passwords before production use.
+
+filesystem:
+  debounce_time: 100ms
+  exclude_patterns:
+  - '*.tmp'
+  - '*.log'
+  - .git
+  - node_modules
+  - .DS_Store
+  recursive: true
+  watch_paths:
+  - /data
+  - /shared
+log:
+  level: info
+security:
+  audit:
+    enable: true
+    format: json
+    log_file: /var/log/krakenfs/audit.log
+    log_level: info
+  authentication:
+    bcrypt_cost: 12
+    enable: true
+    jwt_secret: R8dVX0juxB6db5lTVX7Ah7aGWXhY2Hp0NQQquQUJVgn2h0s/qiPohIC686qJqbbMQJ/m32r7Y7p1/t2P3Kh2UA==
+    token_expiry: 24h
+    type: jwt
+  authorization:
+    enable: true
+    rbac:
+      enable: true
+sync:
+  bandwidth:
+    egress_bits_per_sec: 1677721600
+    enable: true
+    ingress_bits_per_sec: 2516582400
+  cluster_nodes:
+  - node1:192.168.1.10
+  - node2:192.168.1.11
+  conflict_resolution:
+    strategy: timestamp
+    timeout: 30s
+  discovery:
+    domain: local
+    enable: true
+    service_name: _krakenfs._tcp
+  node_id: node1
+  p2p_port: 6881
+  storage:
+    path: /var/lib/krakenfs/data
+  tls:
+    ca_file: /etc/krakenfs/certs/ca.crt
+    cert_file: /etc/krakenfs/certs/node1.crt
+    enable: false
+    insecure_skip_verify: false
+    key_file: /etc/krakenfs/certs/node1.key
+    max_version: "1.3"
+    min_version: "1.2"
+    verify_peer: false
+  tracker_port: 6882
+volume:
+  driver_name: krakenfs
+  root_path: /var/lib/krakenfs/volumes
