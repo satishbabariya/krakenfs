@@ -34,6 +34,7 @@ type Config struct {
 	TrackerPort        int                      `yaml:"tracker_port"`
 	Bandwidth          BandwidthConfig          `yaml:"bandwidth"`
 	ConflictResolution ConflictResolutionConfig `yaml:"conflict_resolution"`
+	TLS                TLSConfig                `yaml:"tls"`
 }
 
 // BandwidthConfig defines bandwidth limiting configuration.
@@ -49,6 +50,18 @@ type ConflictResolutionConfig struct {
 	Timeout  string `yaml:"timeout"`
 }
 
+// TLSConfig defines TLS/SSL configuration for secure communication.
+type TLSConfig struct {
+	Enable             bool   `yaml:"enable"`
+	CertFile           string `yaml:"cert_file"`
+	KeyFile            string `yaml:"key_file"`
+	CAFile             string `yaml:"ca_file"`
+	VerifyPeer         bool   `yaml:"verify_peer"`
+	MinVersion         string `yaml:"min_version"` // "1.2", "1.3"
+	MaxVersion         string `yaml:"max_version"` // "1.2", "1.3"
+	InsecureSkipVerify bool   `yaml:"insecure_skip_verify"`
+}
+
 // Engine manages P2P file synchronization.
 type Engine struct {
 	config Config
@@ -60,6 +73,9 @@ type Engine struct {
 	listener  net.Listener
 	peers     map[string]*Peer
 	peerMutex sync.RWMutex
+
+	// TLS components
+	tlsManager *TLSManager
 
 	// Event handling
 	eventChan chan filesystem.FileChangeEvent
@@ -107,14 +123,31 @@ func NewEngine(config Config, logger *zap.Logger) (*Engine, error) {
 		return nil, fmt.Errorf("create listener: %s", err)
 	}
 
+	// Initialize TLS manager
+	tlsManager := NewTLSManager(config.TLS, logger)
+
+	// Generate self-signed certificate if TLS is enabled
+	if config.TLS.Enable {
+		if err := tlsManager.GenerateSelfSignedCert(config.NodeID); err != nil {
+			return nil, fmt.Errorf("generate TLS certificate: %s", err)
+		}
+
+		// Wrap listener with TLS
+		listener, err = tlsManager.WrapListener(listener)
+		if err != nil {
+			return nil, fmt.Errorf("wrap listener with TLS: %s", err)
+		}
+	}
+
 	engine := &Engine{
-		config:    config,
-		clock:     clock.New(),
-		logger:    logger,
-		listener:  listener,
-		peers:     make(map[string]*Peer),
-		eventChan: make(chan filesystem.FileChangeEvent, 100),
-		stopChan:  make(chan struct{}),
+		config:     config,
+		clock:      clock.New(),
+		logger:     logger,
+		listener:   listener,
+		peers:      make(map[string]*Peer),
+		tlsManager: tlsManager,
+		eventChan:  make(chan filesystem.FileChangeEvent, 100),
+		stopChan:   make(chan struct{}),
 		fileTracker: &FileTracker{
 			files: make(map[string]*FileState),
 		},
@@ -122,6 +155,9 @@ func NewEngine(config Config, logger *zap.Logger) (*Engine, error) {
 		fileTransfer:     NewFileTransfer(DefaultChunkSize, logger),
 		conflictResolver: NewConflictResolver(ConflictStrategy(config.ConflictResolution.Strategy), logger),
 	}
+
+	// Set TLS manager in protocol
+	engine.protocol.SetTLSManager(tlsManager)
 
 	return engine, nil
 }
