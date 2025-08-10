@@ -64,8 +64,8 @@ func (scg *SecureConfigGenerator) GenerateSecureConfig(configPath string) error 
 		"sync": map[string]interface{}{
 			"node_id": "node1",
 			"cluster_nodes": []string{
-				"node1:192.168.1.10",
-				"node2:192.168.1.11",
+				"node1:auto", // Auto-detect IP address
+				"node2:auto", // Auto-detect IP address
 			},
 			"p2p_port":     6881,
 			"tracker_port": 6882,

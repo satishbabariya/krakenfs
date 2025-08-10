@@ -50,8 +50,11 @@ cd krakenfs
 
 2. **Set environment variables**
 ```bash
-export VM1_PRIVATE_IP=192.168.1.10
-export VM2_PRIVATE_IP=192.168.1.11
+export NODE1_IP=auto        # Auto-detect IP or set specific IP
+export NODE2_IP=auto        # Auto-detect IP or set specific IP
+# Or use specific IPs if needed:
+# export NODE1_IP=192.168.1.10
+# export NODE2_IP=192.168.1.11
 ```
 
 3. **Build and run**
@@ -125,8 +128,11 @@ filesystem:
 sync:
   node_id: "node1"  # Unique identifier for this node
   cluster_nodes:
-    - "node1:192.168.1.10"  # Format: "node_id:ip_address"
-    - "node2:192.168.1.11"
+    - "node1:auto"           # Auto-detect IP address
+    - "node2:${NODE2_IP}"    # Use environment variable
+    # Alternative formats:
+    # - "node1:192.168.1.10" # Static IP
+    # - "node1:hostname"     # DNS resolution
   p2p_port: 6881
   tracker_port: 6882
   bandwidth:
@@ -150,7 +156,7 @@ You can also override configuration using environment variables:
 docker run -d \
   --name krakenfs \
   -e NODE_ID=my-node \
-  -e CLUSTER_NODES="node1:192.168.1.10,node2:192.168.1.11" \
+  -e CLUSTER_NODES="node1:auto,node2:auto" \
   -e KRAKENFS_PORT=6881 \
   -e KRAKENFS_LOG_LEVEL=debug \
   -e KRAKENFS_TLS_ENABLE=true \

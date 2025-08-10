@@ -108,6 +108,9 @@ type Engine struct {
 	// Recovery manager
 	recoveryManager *RecoveryManager
 
+	// IP resolver
+	ipResolver *IPResolver
+
 	// Protocol and transfer components
 	protocol         *Protocol
 	fileTransfer     *FileTransfer
@@ -205,6 +208,19 @@ func NewEngine(config Config, logger *zap.Logger) (*Engine, error) {
 	// Initialize recovery manager
 	recoveryManager := NewRecoveryManager(config.Recovery, logger)
 	engine.recoveryManager = recoveryManager
+
+	// Initialize IP resolver
+	ipResolver := NewIPResolver(logger)
+	engine.ipResolver = ipResolver
+
+	// Resolve cluster node addresses
+	resolvedNodes, err := ipResolver.ResolveClusterNodes(config.ClusterNodes)
+	if err != nil {
+		logger.Warn("Failed to resolve some cluster nodes", zap.Error(err))
+	} else {
+		config.ClusterNodes = resolvedNodes
+		logger.Info("Resolved cluster nodes", zap.Strings("nodes", resolvedNodes))
+	}
 
 	// Load existing file states from storage
 	if err := engine.loadFileStates(); err != nil {
