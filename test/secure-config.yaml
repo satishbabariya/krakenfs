@@ -2,9 +2,9 @@
 # Generated with secure random secrets
 # 
 # IMPORTANT SECURITY INFORMATION:
-# - JWT Secret: R8dVX0juxB6db5lT...
-# - Admin Password: Wn@9$kUR8E4$%ABnVY!K%ke*
-# - User Password: 0xINMb@5dA^q7DGj
+# - JWT Secret: <JWT_SECRET_PLACEHOLDER>
+# - Admin Password: <ADMIN_PASSWORD_PLACEHOLDER>
+# - User Password: <USER_PASSWORD_PLACEHOLDER>
 # 
 # Please store these credentials securely!
 # Change default passwords before production use.
